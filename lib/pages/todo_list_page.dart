@@ -1,9 +1,20 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class TodoListPage extends StatelessWidget {
+import '../widgets/todo_list_item.dart';
+
+
+class TodoListPage extends StatefulWidget {
      TodoListPage({Key? key}) : super(key: key);
 
-  final TextEditingController emailController = TextEditingController();
+  @override
+  State<TodoListPage> createState() => _TodoListPageState();
+}
+
+class _TodoListPageState extends State<TodoListPage> {
+  final TextEditingController todoController = TextEditingController();
+
+  List<String> todos = [];
 
   @override
   Widget build(BuildContext context) {
@@ -11,39 +22,83 @@ class TodoListPage extends StatelessWidget {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: TextField(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    hintText: 'Adicione uma tarefa',
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: todoController,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(),
+                        hintText: 'Adicione uma tarefa',
+                      ),
+                    ),
                   ),
+                  SizedBox(
+                    width: 8,
+                  ),
+                  ElevatedButton(
+                      onPressed: () {
+                        String text = todoController.text;
+                        setState(() {
+                          todos.add(text);
+                        });
+                        todoController.clear();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        primary: Color(0xff00d7f3),
+                        padding: EdgeInsets.all(16),
+                      ),
+                      child: Icon(
+                        Icons.add,
+                        size: 30,
+                      ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 16,
+              ),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: [
+                   for(String todo in todos)
+                     TodoListItem(),
+                  ],
                 ),
               ),
-
-              SizedBox(width: 8,),
-
-              ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    primary: Color(0xff00d7f3),
-                    padding: EdgeInsets.all(16),
+              SizedBox(
+                height: 16,
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Você possui 0 tarefa pendente!',
+                    ),
                   ),
-                  child: Icon(
-                    Icons.add,
-                    size: 30,
+                  SizedBox(
+                    width: 8,
                   ),
+                  ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      primary: Color(0xff00d7f3),
+                      padding: EdgeInsets.all(14),
+                    ),
+                    child: Text(
+                      'Limpar tudo'
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  void login() {
-    String text = emailController.text;
-    print(text);
   }
 }
