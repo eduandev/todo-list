@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="edu.and.todo_list">
    <application
-        android:label="todo_list"
+        android:label="Lista de tarefas"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

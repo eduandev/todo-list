@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
-import '../models/todo.dart';
-import '../widgets/todo_list_item.dart';
+import 'package:todo_list/models/todo.dart';
+import 'package:todo_list/repositories/todo_repository.dart';
+import 'package:todo_list/widgets/todo_list_item.dart';
 
 
 class TodoListPage extends StatefulWidget {
@@ -14,10 +14,23 @@ class TodoListPage extends StatefulWidget {
 
 class _TodoListPageState extends State<TodoListPage> {
   final TextEditingController todoController = TextEditingController();
+  final TodoRepository todoRepository = TodoRepository();
 
   List<Todo> todos = [];
   Todo? deletedTodo;
   int? deletedTodoPos;
+  String? errorText;
+
+  @override
+  void initState() {
+    super.initState();
+
+    todoRepository.getTodoList().then((value) {
+      setState(() {
+        todos = value;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +50,7 @@ class _TodoListPageState extends State<TodoListPage> {
                         decoration: InputDecoration(
                           border: OutlineInputBorder(),
                           hintText: 'Adicione uma tarefa',
+                          errorText: errorText,
                         ),
                       ),
                     ),
@@ -46,14 +60,24 @@ class _TodoListPageState extends State<TodoListPage> {
                     ElevatedButton(
                         onPressed: () {
                           String text = todoController.text;
+
+                          if(text.isEmpty) {
+                            setState(() {
+                              errorText = 'Preencha o campo!';
+                            });
+                            return;
+                          }
+
                           setState(() {
                             Todo newTodo = Todo(
                               title: text,
                               dateTime: DateTime.now(),
                             );
                             todos.add(newTodo);
+                            errorText = null;
                           });
                           todoController.clear();
+                          todoRepository.saveTodoList(todos);
                         },
                         style: ElevatedButton.styleFrom(
                           primary: Color(0xff00d7f3),
@@ -121,6 +145,7 @@ void onDelete(Todo todo) {
     setState(() {
       todos.remove(todo);
     });
+    todoRepository.saveTodoList(todos);
 
 ScaffoldMessenger.of(context).clearSnackBars();
 
@@ -136,6 +161,7 @@ ScaffoldMessenger.of(context).showSnackBar(
         setState(() {
             todos.insert(deletedTodoPos!, deletedTodo!);
         });
+        todoRepository.saveTodoList(todos);
       },
     ),
     duration: const Duration(seconds: 5),
@@ -144,19 +170,14 @@ ScaffoldMessenger.of(context).showSnackBar(
 }
 
 void showDeleteAllConfirmationDialog() {
-    if(todos.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Adicione uma tarefa na lista!',
-            style: TextStyle(color: Colors.black,
-            fontSize: 16),
-          ),
-          backgroundColor: Colors.white,
-          duration: const Duration(seconds: 3),
-        ),
-      );
 
-    } else {
+    if(todos.isEmpty) {
+      setState(() {
+        errorText = 'Adicione uma tarefa na lista!';
+      });
+      return;
+    }
+
       showDialog(context: context,
         builder: (context) =>
             AlertDialog(
@@ -182,13 +203,13 @@ void showDeleteAllConfirmationDialog() {
 
             ),
       );
-    }
 }
 
 void deleteAllTodos() {
     setState(() {
       todos.clear();
       });
+    todoRepository.saveTodoList(todos);
 }
 
 }
